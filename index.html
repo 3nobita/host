@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        /* Move CSS to an external stylesheet for better organization */
+
+        /* Keep styles related to the login form separate */
+        .login-form {
+            margin-top: 20px;
+        }
+
+        /* Define shared styles */
+        .navbar {
+            background-color: #93c4d5;
+            text-align: center;
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 40px;
+        }
+
+        #myTextarea {
+            position: relative;
+            left: 250px;
+            width: 60%;
+            height: 350px;
+            border-radius: 10px;
+            background-color: #f2a4b1;
+        }
+
+        ::placeholder {
+            text-align: center;
+            font-size: 10px;
+            color: #bad0b9;
+        }
+
+        .butt {
+            position: relative;
+            top: 3em;
+            left: -21em;
+            padding: 10px 100px 10px 100px;
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Add a class to the form for better targeting -->
+    <form id="loginForm" class="login-form">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username"><br><br>
+        <input type="submit" value="Login">
+    </form>
+
+    <div class="container" id="hiddenContent" style="display: none;">
+        <h1 class="navbar">
+            <span id="loggedInUser"></span>'s Thoughts
+        </h1>
+        <textarea name="text" id="myTextarea" cols="30" rows="10" placeholder="Share Your Thoughts"></textarea>
+        <button class='butt' type="submit">Tell</button>
+    </div>
+    <div class="saves" id="hiddenSaves" style="display: none;">
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const loginForm = document.getElementById('loginForm');
+            loginForm.addEventListener('submit', handleLogin);
+            document.querySelector('.butt').addEventListener('click', saveText);
+            loadSaves();
+        });
+
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+
+            if (username == "39" || username == "pussu") {
+                alert("Login successful for user: " + username);
+                document.getElementById('loginForm').style.display = "none";
+                document.getElementById('hiddenContent').style.display = "block";
+                document.getElementById('hiddenSaves').style.display = "block";
+
+                document.getElementById('loggedInUser').textContent = username;
+            } else {
+                alert("Login failed. Invalid username.");
+            }
+        }
+
+        function saveText() {
+            const text = document.getElementById("myTextarea").value;
+            const timestamp = new Date().toLocaleString();
+
+            if (typeof (Storage) !== "undefined") {
+                const saves = JSON.parse(localStorage.getItem("saves")) || [];
+
+                saves.push({
+                    timestamp: timestamp,
+                    username: document.getElementById('username').value,
+                    text: text
+                });
+
+                localStorage.setItem("saves", JSON.stringify(saves));
+
+                displaySave({
+                    timestamp: timestamp,
+                    username: document.getElementById('username').value,
+                    text: text
+                });
+            } else {
+                alert("Sorry, your browser does not support web storage...");
+            }
+        }
+
+        function loadSaves() {
+            if (localStorage.getItem("saves")) {
+                const saves = JSON.parse(localStorage.getItem("saves"));
+
+                saves.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                saves.forEach(function (save) {
+                    displaySave(save);
+                });
+            }
+        }
+        function displaySave(save) {
+            const text = save.text.trim(); // Trim removes leading and trailing whitespace
+
+            if (text === "") {
+                // If empty, do nothing or show an error message
+                console.log("Please enter some text before saving.");
+                return;
+            }
+
+            // Create a new div element to display the save 
+            const saveDiv = document.createElement('div');
+            saveDiv.classList.add('save');
+
+            // Create elements for timestamp, username, text, delete button, and delete confirmation input
+            const timestampPara = document.createElement('h1');
+            timestampPara.textContent = "Timestamp: " + save.timestamp;
+
+            const usernamePara = document.createElement('p');
+            usernamePara.textContent = "Username: " + save.username;
+
+            const textPara = document.createElement('p');
+            textPara.textContent = "Text: " + save.text;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = "Delete";
+            deleteButton.classList.add('delete-button');
+            deleteButton.addEventListener('click', function () {
+                const confirmationKey = prompt("Enter delete confirmation key:");
+                if (confirmationKey === "5thfebruary") {
+                    saveDiv.remove();
+                    removeSave(save);
+                } else {
+                    alert("Incorrect confirmation key. Deletion canceled.");
+                }
+            });
+
+
+            // Append elements to the save div
+            saveDiv.appendChild(timestampPara);
+            saveDiv.appendChild(usernamePara);
+            saveDiv.appendChild(textPara);
+            saveDiv.appendChild(deleteButton);
+
+            // Get the container element for saves
+            const savesContainer = document.querySelector('.saves');
+
+            // Prepend the save div to the .saves container
+            savesContainer.insertBefore(saveDiv, savesContainer.firstChild);
+        }
+
+
+        function removeSave(save) {
+            if (localStorage.getItem("saves")) {
+                const saves = JSON.parse(localStorage.getItem("saves"));
+
+                // Find the index of the save to be removed
+                const index = saves.findIndex(function (item) {
+                    return item.timestamp === save.timestamp && item.text === save.text;
+                });
+
+                if (index !== -1) {
+                    // Remove the save from the array
+                    saves.splice(index, 1);
+                    // Update local storage
+                    localStorage.setItem("saves", JSON.stringify(saves));
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
